@@ -1,4 +1,4 @@
-# 🧠 OpenAImer 2026 – Track B  
+# 🧠 OpenAImer 2026
 ## 💙 Emotionally Intelligent AI Chatbot
 
 > *“Not just a chatbot. A system that understands what users don’t say.”*
