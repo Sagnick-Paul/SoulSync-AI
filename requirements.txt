@@ -1,0 +1,38 @@
+# Core
+numpy
+pandas
+
+# NLP & ML
+scikit-learn
+nltk
+spacy
+
+# Deep Learning / Transformers
+torch
+transformers
+datasets
+
+# Emotion / Sentiment Analysis
+textblob
+vaderSentiment
+
+# API Backend
+fastapi
+uvicorn
+
+# Optional UI (choose one or both)
+streamlit
+gradio
+
+# Utilities
+tqdm
+python-dotenv
+requests
+
+# Optional (for advanced chatbot memory / RAG)
+faiss-cpu
+langchain
+
+# Optional (if using OpenAI / Gemini APIs)
+openai
+google-generativeai
