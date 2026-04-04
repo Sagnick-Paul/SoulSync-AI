@@ -36,3 +36,6 @@ langchain
 # Optional (if using OpenAI / Gemini APIs)
 openai
 google-generativeai
+
+python-dotenv
+langchain_google_genai
