@@ -3,13 +3,36 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
-# ---------------- MODEL ----------------
-model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7)
+# This is the correct way for the new package
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.vectorstores import FAISS
 
-print("Model is ready for emotional conversations! Type 0 to quit.\n")
+
+
+
+# ---------------- DOCUMENTS ----------------
+documents = [
+    "Procrastination often comes from fear of failure or overwhelm.",
+    "Emotional numbness can be a coping response to prolonged stress.",
+    "Avoidance behavior is often linked to anxiety or self-doubt.",
+    "Feeling like you don't belong is commonly associated with imposter syndrome."
+]
+
+# ---------------- EMBEDDINGS ----------------
+embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
+
+# ---------------- VECTOR STORE ----------------
+vector_store = FAISS.from_texts(documents, embeddings)
+
+# ---------------- MODEL ----------------
+# model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7)
+# print("Model is ready for emotional conversations! Type 0 to quit.\n")
+
+model=ChatGroq(model="llama-3.3-70b-versatile", temperature=0.7)
 
 # ---------------- SYSTEM PROMPT ----------------
 system_prompt = """
@@ -30,9 +53,26 @@ Style:
 - No clichés
 """
 
+#
+
 # ---------------- MEMORY ----------------
 memory = []
 entities = []
+
+#-----------------USER PROFILE----------------
+user_profile = {
+    "common_emotions": [],
+    "patterns": [],
+    "entities": []
+}
+
+#---------------- PROFILE UPDATE FUNCTION ----------------
+def update_profile(user_input, emotion_analysis):
+    if "avoid" in emotion_analysis.lower():
+        user_profile["patterns"].append("avoidance")
+
+    if "stress" in emotion_analysis.lower():
+        user_profile["common_emotions"].append("stress")
 
 # ---------------- EMOTION DETECTION ----------------
 def detect_emotion(user_input):
@@ -105,7 +145,7 @@ while True:
     # -------- Safety Check --------
     # HIGH RISK
     if detect_risk(user_input):
-        print("\nChatbot: I'm really glad you told me this. You don’t have to go through this alone.")
+        print("\nChatbot: I'm really glad you told me this. You don't have to go through this alone.")
         print("Please consider reaching out to someone you trust or a helpline right now.\n")
         continue
 
@@ -120,6 +160,11 @@ while True:
     extract_entities(user_input)
 
     recent_memory = memory[-3:]
+    
+    #------------------FAISS RETRIEVAL FUNCTION----------------
+    retrieved_docs=vector_store.similarity_search(user_input, k=2)
+    context=" ".join([doc.page_content for doc in retrieved_docs])
+
 
     # -------- Emotion Detection --------
     emotion_analysis = detect_emotion(user_input)
@@ -128,6 +173,15 @@ while True:
     enhanced_prompt = f"""
     User message:
     {user_input}
+    
+    Relevant knowledge:
+    {context}
+    
+    User Profile:
+    {user_profile}
+
+    Recent conversation:
+    {recent_memory}
 
     Recent conversation:
     {recent_memory}

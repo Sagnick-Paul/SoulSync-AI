@@ -12,6 +12,7 @@ dependencies = [
     "google-generativeai>=0.8.6",
     "gradio>=6.11.0",
     "langchain>=1.2.15",
+    "langchain-community>=0.4.1",
     "langchain-core>=1.2.25",
     "langchain-google-genai>=4.2.1",
     "nltk>=3.9.4",
