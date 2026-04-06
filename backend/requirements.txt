@@ -45,3 +45,5 @@ langchain-community
 faiss-cpu
 praw
 datasets
+
+langchain_groq

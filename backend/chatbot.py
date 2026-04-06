@@ -10,8 +10,13 @@ from langchain_core.messages import HumanMessage, SystemMessage
 # This is the correct way for the new package
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_mistralai import MistralAIEmbeddings
+import os
 
 
+
+
+import os
 
 
 # ---------------- DOCUMENTS ----------------
@@ -23,7 +28,9 @@ documents = [
 ]
 
 # ---------------- EMBEDDINGS ----------------
-embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
+# Using the prefix 'models/' as some Pydantic versions require it for validation
+#embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+embeddings = MistralAIEmbeddings(model="mistral-embed")
 
 # ---------------- VECTOR STORE ----------------
 vector_store = FAISS.from_texts(documents, embeddings)
@@ -56,10 +63,9 @@ Style:
 #
 
 # ---------------- MEMORY ----------------
+# Global defaults (used for CLI)
 memory = []
 entities = []
-
-#-----------------USER PROFILE----------------
 user_profile = {
     "common_emotions": [],
     "patterns": [],
@@ -67,12 +73,12 @@ user_profile = {
 }
 
 #---------------- PROFILE UPDATE FUNCTION ----------------
-def update_profile(user_input, emotion_analysis):
+def update_profile(user_input, emotion_analysis, profile):
     if "avoid" in emotion_analysis.lower():
-        user_profile["patterns"].append("avoidance")
+        profile["patterns"].append("avoidance")
 
     if "stress" in emotion_analysis.lower():
-        user_profile["common_emotions"].append("stress")
+        profile["common_emotions"].append("stress")
 
 # ---------------- EMOTION DETECTION ----------------
 def detect_emotion(user_input):
@@ -91,13 +97,13 @@ def detect_emotion(user_input):
 
 
 # ---------------- ENTITY TRACKING ----------------
-def extract_entities(user_input):
+def extract_entities(user_input, entities_list):
     if "parent" in user_input.lower():
-        entities.append("parents")
+        entities_list.append("parents")
     if "exam" in user_input.lower():
-        entities.append("exams")
+        entities_list.append("exams")
     if "friend" in user_input.lower():
-        entities.append("friends")
+        entities_list.append("friends")
 
 
 # ---------------- RISK DETECTION ----------------
@@ -133,41 +139,31 @@ def is_generic(text):
     generic_phrases = ["I understand", "I'm sorry", "That sounds tough"]
     return any(p.lower() in text.lower() for p in generic_phrases)
 
-
-# ---------------- CHAT LOOP ----------------
-while True:
-    user_input = input("User: ")
-
-    if user_input.strip() == "0":
-        print("Chatbot: Take care! If you ever need someone to talk to, I'm here.")
-        break
-
+def get_chatbot_response(user_input, history, entities_list, profile):
+    """
+    Core logic to generate a response given user input and context.
+    Returns: (response_text, is_risk, is_early_risk)
+    """
     # -------- Safety Check --------
-    # HIGH RISK
     if detect_risk(user_input):
-        print("\nChatbot: I'm really glad you told me this. You don't have to go through this alone.")
-        print("Please consider reaching out to someone you trust or a helpline right now.\n")
-        continue
+        return ("I'm really glad you told me this. You don't have to go through this alone. Please consider reaching out to someone you trust or a helpline right now.", True, False)
 
-    # ---------EARLY RISK-----------
     if detect_early_risk(user_input):
-        print("\nChatbot: That sounds like things have been building up for a while, and it’s getting heavy to carry alone.")
-        print("Have you been able to talk to anyone about how this has been feeling for you?\n")
-        continue
+        return ("That sounds like things have been building up for a while, and it’s getting heavy to carry alone. Have you been able to talk to anyone about how this has been feeling for you?", False, True)
 
     # -------- Memory + Entity --------
-    memory.append(user_input)
-    extract_entities(user_input)
+    history.append(user_input)
+    extract_entities(user_input, entities_list)
 
-    recent_memory = memory[-3:]
+    recent_memory = history[-3:]
     
     #------------------FAISS RETRIEVAL FUNCTION----------------
-    retrieved_docs=vector_store.similarity_search(user_input, k=2)
-    context=" ".join([doc.page_content for doc in retrieved_docs])
-
+    retrieved_docs = vector_store.similarity_search(user_input, k=2)
+    context = " ".join([doc.page_content for doc in retrieved_docs])
 
     # -------- Emotion Detection --------
     emotion_analysis = detect_emotion(user_input)
+    update_profile(user_input, emotion_analysis, profile)
 
     # -------- Enhanced Prompt --------
     enhanced_prompt = f"""
@@ -178,16 +174,13 @@ while True:
     {context}
     
     User Profile:
-    {user_profile}
-
-    Recent conversation:
-    {recent_memory}
+    {profile}
 
     Recent conversation:
     {recent_memory}
 
     Known context:
-    {entities}
+    {entities_list}
 
     Emotional analysis:
     {emotion_analysis}
@@ -216,4 +209,27 @@ while True:
     if is_generic(bot_reply):
         bot_reply = bot_reply.replace("I'm sorry", "").replace("I understand", "")
 
-    print(f"\nChatbot: {bot_reply}\n")
+    return (bot_reply, False, False)
+
+
+# ---------------- CHAT LOOP (CLI) ----------------
+def run_cli():
+    print("Model is ready for emotional conversations! Type 0 to quit.\n")
+    while True:
+        u_input = input("User: ")
+
+        if u_input.strip() == "0":
+            print("Chatbot: Take care! If you ever need someone to talk to, I'm here.")
+            break
+
+        bot_reply, is_risk, is_early_risk = get_chatbot_response(u_input, memory, entities, user_profile)
+        
+        if is_risk:
+            print(f"\n[RISK DETECTED]\nChatbot: {bot_reply}\n")
+        elif is_early_risk:
+            print(f"\n[EARLY RISK DETECTED]\nChatbot: {bot_reply}\n")
+        else:
+            print(f"\nChatbot: {bot_reply}\n")
+
+if __name__ == "__main__":
+    run_cli()
