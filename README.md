@@ -92,7 +92,7 @@ flowchart TD
 
 A[User Input] --> B[Emotion & Intent Analyzer]
 B --> C[Context & Memory Retrieval]
-C --> D[Knowledge Retriever (RAG)]
+C --> D["Knowledge Retriever (RAG)"]
 D --> E[Prompt Constructor]
 E --> F[LLM Response Generator]
 F --> G[Response Validator]
