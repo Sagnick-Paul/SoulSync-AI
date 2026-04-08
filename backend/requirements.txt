@@ -1,49 +1,20 @@
-# Core
-numpy
-pandas
-
-# NLP & ML
-scikit-learn
-nltk
-spacy
-
-# Deep Learning / Transformers
-torch
-transformers
-datasets
-
-# Emotion / Sentiment Analysis
-textblob
-vaderSentiment
-
-# API Backend
+# API Framework
 fastapi
 uvicorn
 
-# Optional UI (choose one or both)
-streamlit
-gradio
-
-# Utilities
-tqdm
-python-dotenv
-requests
-
-# Optional (for advanced chatbot memory / RAG)
-faiss-cpu
+# AI Integration (The Cloud Brains)
+google-generativeai
+langchain-google-genai
+langchain-groq
+langchain-community
 langchain
 
-# Optional (if using OpenAI / Gemini APIs)
-openai
-google-generativeai
-
+# Lightweight Utilities
 python-dotenv
-langchain_google_genai
+requests
+numpy
+pandas
 
-
-langchain-community
-faiss-cpu
-praw
-datasets
-
-langchain_groq
+# Sentiment (Lightweight)
+textblob
+vaderSentiment
