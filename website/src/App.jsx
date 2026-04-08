@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Send, AlertTriangle, Shield, Heart, Sparkles, User, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = '/_backend';
 
 function App() {
   const [messages, setMessages] = useState([]);
