@@ -1,6 +1,8 @@
 # 🧠 OpenAImer 2026
 ## 💙 Emotionally Intelligent AI Chatbot
 
+WEBSITE  :  https://soul-sync-ai-t32l.vercel.app/
+
 > *“Not just a chatbot. A system that understands what users don’t say.”*
 
 ---
